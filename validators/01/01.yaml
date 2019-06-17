@@ -1,0 +1,103 @@
+# Validator External Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: cambio-validator-01-external
+  labels:
+    app: cambio-validator-01-svc
+spec:
+  type: NodePort
+  ports:
+  - port: 8800 # TargetPort = port by default
+    name: network
+    nodePort: 30002 #This will also expose the ContainerPort to the cluster
+  selector:
+    app: cambio-tys-validator-01
+---
+# Validator Internal Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: cambio-validator-01-internal
+  labels:
+    app: cambio-validator-01-svc
+spec:
+  ports:
+  - port: 4004
+    name: component
+  - port: 5050
+    name: consensus
+  selector:
+    app: cambio-tys-validator-01
+---
+# Persistent Storage Volume
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: cambio-validator-01-disk
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+---
+# Validator 00  
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: cambio-tys-validator-01-statefulset
+spec:
+  serviceName: "cambio-validator-01-external"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cambio-tys-validator-01
+  template:
+    metadata:
+      labels:
+        app: cambio-tys-validator-01
+    spec:
+      containers:
+      - name: cambio-tys-validator-01
+        image: hyperledger/sawtooth-validator:1.1
+        ports:
+        - containerPort: 8800
+          name: network
+        - containerPort: 5050
+          name: consensus
+        - containerPort: 4004
+          name: component
+        volumeMounts:
+          # Block/chain storage
+        - name: block-store-01
+          mountPath: /var/lib/sawtooth
+          # Validator private and public keys
+        - name: validator-keys
+          readOnly: true
+          mountPath: /etc/sawtooth/keys
+          # Validator.toml
+        - name: validator-config
+          readOnly: true
+          mountPath: /etc/sawtooth
+        command: [ "/bin/bash", "-c", "sawtooth-validator -vv" ]
+      volumes:
+      - name: block-store-01
+        persistentVolumeClaim:
+          claimName: cambio-validator-01-disk
+      - name: validator-keys
+        secret:
+          secretName: cambio-validator-keys
+          items:
+          - key: 01.priv
+            path: validator.priv
+            mode: 0640
+          - key: 01.pub
+            path: validator.pub
+      - name: validator-config
+        secret:
+          secretName: cambio-validator-01-cfg
+          items:
+          - key: validator.toml
+            path: validator.toml
+            mode: 0640
