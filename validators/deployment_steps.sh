@@ -3,6 +3,8 @@
 ##### 1. Configure cluster #####
 gcloud config set compute/zone us-central1-a
 gcloud container clusters create cambio-sawtooth-cluster
+     - Need to set static ips for the nodes OR use a service load balancer
+     - Need to use size n1-standard-2
 
 #### 2. Create namespace #####
 #  Skipping for now, but should be required for a productionalized deployment

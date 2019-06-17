@@ -1,0 +1,84 @@
+# validator host: cambio-validator-01-internal.default.svc.cluster.local:4004
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cambio-settings-sabre-pbft-01
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cambio-settings-sabre-pbft-01
+  template:
+    metadata:
+      labels:
+        app: cambio-settings-sabre-pbft-01
+    spec:
+      containers:
+        # SETTINGS TP
+      - name: cambio-settings-tp-01
+        image: hyperledger/sawtooth-settings-tp:1.1
+        command:
+          - bash
+        args:
+          - -c
+          - "settings-tp -vv -C tcp://cambio-validator-01-internal.default.svc.cluster.local:4004"
+        # SABRE TP
+      - name: cambio-sabre-tp-01
+        image: hyperledger/sawtooth-sabre-tp:0.3
+        command:
+          - bash
+        args:
+          - -c
+          - "sawtooth-sabre -vv -C tcp://cambio-validator-01-internal.default.svc.cluster.local:4004"
+        # PBFT
+      - name: cambio-pbft-tp-01
+        image: hyperledger/sawtooth-pbft-engine:0.1.2
+        command:
+          - bash
+        args:
+          - -c
+          - "pbft-engine -vv -C tcp://cambio-validator-01-internal.default.svc.cluster.local:5050"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cambio-xo-intkey-rest-01
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cambio-xo-intkey-rest-01
+  template:
+    metadata:
+      labels:
+        app: cambio-xo-intkey-rest-01
+    spec:
+      containers:
+        # XO
+      - name: cambio-xo-tp-01
+        image: hyperledger/sawtooth-xo-tp-go:1.1
+        command:
+          - bash
+        args:
+          - -c
+          - "xo-tp-go -vv -C tcp://cambio-validator-01-internal.default.svc.cluster.local:4004"
+        # INTKEY
+      - name: cambio-intkey-tp-01
+        image: hyperledger/sawtooth-intkey-tp-go:1.1
+        command:
+          - bash
+        args:
+          - -c
+          - "intkey-tp-go -vv -C tcp://cambio-validator-01-internal.default.svc.cluster.local:4004"
+       # REST
+      - name: cambio-rest-tp-01
+        image: hyperledger/sawtooth-rest-api:1.1
+        ports: 
+          - name: rest
+            containerPort: 8008
+        command:
+          - bash
+        args:
+          - -c
+          - "sawtooth-rest-api -C tcp://cambio-validator-01-internal.default.svc.cluster.local:4004"
+---

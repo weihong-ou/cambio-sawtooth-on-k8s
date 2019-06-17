@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cambio-tps-00
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cambio-tps-00
+  template:
+    metadata:
+      labels:
+        app: cambio-tps-00
+    spec:
+      containers:
+        # SETTINGS TP
+      - name: cambio-pbft-tp-00
+        image: hyperledger/sawtooth-settings-tp:1.1
+        command:
+          - bash
+        args:
+          - -c
+          - "pbft-engine -vv -C tcp://cambio-validator-00-internal.default.svc.cluster.local:5050"

@@ -24,6 +24,7 @@ The intention behind using k8s to manage sawtooth deployment is ease of operatio
 2. How to integrate https://hub.docker.com/r/hyperledger/sawtooth-shell/ for CLI interactions
 3. Should we build a RESTful interface for submitting CLI interactions?
 4. For the shared transaction processor services, investigate the need to have a shared validator internal service for the deployments to connect to or if the tp's entrypoints may have multiple --bind arguments.
+5. How do I clear data from the Persistent Volume Store?
 
 ## Enhancements
 1. Change NodePort exposure to NLB

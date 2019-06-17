@@ -80,7 +80,11 @@ spec:
         - name: validator-config
           readOnly: true
           mountPath: /etc/sawtooth
-        command: [ "/bin/bash", "-c", "sawtooth-validator -vv" ]
+        command: 
+          - bash
+        args:
+          - -c
+          - "sawtooth-validator -vv"
       volumes:
       - name: block-store-00
         persistentVolumeClaim:
